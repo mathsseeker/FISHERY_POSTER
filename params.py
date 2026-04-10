@@ -32,15 +32,16 @@ PARAMS: dict = {
     # ── Biological parameters (Iceland cod, 4 age classes) ───────────────────
     "n":        4,                              # age classes: 1, 2, 3, 4+
     "tau":      0.5,                            # fishing at mid-year
-    "w_s":      np.array([0.37, 0.56, 0.79, 2.04]),   # weight-at-age (kg) ICES 2025
+    "w_s":      np.array([0.37, 0.56, 0.79, 2.04]) / 1000.0,   # weight-at-age (tonnes/fish), converted from kg
     "gamma_s":  np.array([0.00, 0.36, 0.82, 1.00]),   # maturity-at-age    ICES 2025
     "m_s":      np.array([0.60, 0.40, 0.30, 0.20]),   # natural mortality  ICES 2025
     "q_s":      np.array([0.44, 1.00, 0.82, 0.30]),   # selectivity        ICES 2025
 
-    # Stochastic Ricker recruitment (fit to ICES SSB-recruitment series)
-    "r1":       15.44,      # Ricker alpha  (scale)
-    "r2":       0.686,      # Ricker beta   (density-dependence)
-    "sigma_R":  0.30,       # std dev of log-recruitment shock
+    # Stochastic Ricker recruitment (curve_fit to ICES 2025 SSB-recruitment data
+    # cod.27.5a, SSB in tonnes, recruits in thousands of fish)
+    "r1":       1.5136,     # Ricker alpha  (scale)            — refitted 2026-04
+    "r2":       3.5569e-6,  # Ricker beta   (density-dep.)     — refitted 2026-04
+    "sigma_R":  0.30,       # std dev of log-recruitment shock (ICES cod literature)
 
     # Carrying capacity proxy  (1.5 × peak B4+ of 1 229 426 t observed in 2016)
     "I_max":    1_844_319,  # tonnes
