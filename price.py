@@ -1,4 +1,4 @@
-"""
+but """
 price.py — Tauchen (1986) discretisation of the log-normal price process
 =========================================================================
 Converts the continuous log-normal GBM:

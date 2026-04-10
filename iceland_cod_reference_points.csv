@@ -1,0 +1,8 @@
+parameter,value,unit,note
+B_lim,125000.0,t,SSB floor — biological viability constraint
+B_PA,160000.0,t,Precautionary approach SSB threshold
+MSY_Btrigger,265000.0,t,B_MSY trigger — target biomass in HCR
+HR_MSY,0.22,rate,Target harvest rate at MSY
+mgt_Btrigger,220000.0,t,Iceland management plan SSB trigger
+HR_mgt,0.2,rate,Iceland management plan harvest rate
+I_max_estimate,1844139.0,t,1.5 × peak B4+ — carrying capacity proxy

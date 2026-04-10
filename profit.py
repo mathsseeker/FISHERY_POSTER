@@ -79,8 +79,11 @@ def build_profit_tensor(
     pi = revenue - cost          # shape (1, M, J) broadcast to (N, M, J)
     pi = np.broadcast_to(pi, (len(B_grid), len(P_grid), len(H_grid))).copy()
 
-    # Infeasibility mask: H > B  →  -inf
-    infeasible = H_grid[np.newaxis, np.newaxis, :] > B_grid[:, np.newaxis, np.newaxis]
+    # Infeasibility mask: H > B  →  -inf   (broadcast to full N×M×J shape)
+    infeasible = np.broadcast_to(
+        H_grid[np.newaxis, np.newaxis, :] > B_grid[:, np.newaxis, np.newaxis],
+        pi.shape,
+    ).copy()
     pi[infeasible] = -np.inf
 
     # Guard: H = 0 always feasible; H < 0 never constructed (H_grid[0] = 0)
