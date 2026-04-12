@@ -131,17 +131,17 @@ def plot_hcr(hcr_params, H_star, B_grid, P_grid, p=PARAMS):
     idx5  = np.linspace(0, M - 1, 5, dtype=int)
     cmap  = plt.cm.plasma(np.linspace(0.1, 0.85, 5))
 
-    fig, ax = plt.subplots(figsize=(11, 6.5))
+    fig, ax = plt.subplots(figsize=(13, 7.5))
     B_fine  = np.linspace(B_grid[0], B_grid[-1], 1000)
 
     for rank, m in enumerate(idx5):
-        P_label = f"{P_grid[m]/1_000:.0f}k ISK/t"
+        P_label = f"{P_grid[m]/1_000:.0f}k EUR/t"
         col     = cmap[rank]
 
         # Scatter: VFI optimal policy
         ax.scatter(
             B_grid / 1e6, H_star[:, m] / 1e3,
-            color=col, alpha=0.65, s=30, zorder=3,
+            color=col, alpha=0.65, s=50, zorder=3,
         )
 
         # Fitted HCR curve
@@ -151,7 +151,7 @@ def plot_hcr(hcr_params, H_star, B_grid, P_grid, p=PARAMS):
         H_fit = _hcr_piecewise(B_fine, B_z, sl, Hm)
         ax.plot(
             B_fine / 1e6, H_fit / 1e3,
-            color=col, lw=2.0, linestyle="--",
+            color=col, lw=2.5, linestyle="--",
             label=f"P = {P_label}",
         )
 
@@ -179,25 +179,26 @@ def plot_hcr(hcr_params, H_star, B_grid, P_grid, p=PARAMS):
         f"$B_{{zero}}$\n{B_zero_med/1e3:.0f} kt",
         xy=(B_zero_med / 1e6, y_ref),
         xytext=(B_zero_med / 1e6 - 0.20, y_ref * 1.15),
-        fontsize=9, color="black",
-        arrowprops=dict(arrowstyle="->", color="black", lw=1.0),
+        fontsize=13, color="black",
+        arrowprops=dict(arrowstyle="->", color="black", lw=1.2),
     )
 
     # ── Cosmetics ──────────────────────────────────────────────────────────
-    ax.set_xlabel("Biomass  B  (million tonnes)", fontsize=12)
-    ax.set_ylabel("Optimal Harvest  H*  (thousand tonnes)", fontsize=12)
+    ax.set_xlabel("Biomass  B  (million tonnes)", fontsize=15)
+    ax.set_ylabel("Optimal Harvest  H*  (thousand tonnes)", fontsize=15)
     ax.set_title(
         "Harvest Control Rule — Icelandic Cod\n"
         r"$H^*(B,P)$ from Value-Function Iteration  (VFI policy surface)",
-        fontsize=13,
+        fontsize=16,
     )
-    ax.legend(fontsize=9, loc="upper left", framealpha=0.85)
+    ax.tick_params(labelsize=13)
+    ax.legend(fontsize=13, loc="upper left", framealpha=0.85)
     ax.grid(True, alpha=0.25)
     ax.set_xlim(left=0)
     ax.set_ylim(bottom=0)
 
     plt.tight_layout()
-    plt.savefig("hcr_plot.png", dpi=150)
+    plt.savefig("hcr_plot.png", dpi=180)
     plt.close()
     print("  Saved: hcr_plot.png")
 
