@@ -169,18 +169,16 @@ def plot_hcr(hcr_params, H_star, B_grid, P_grid, p=PARAMS):
     m_med      = M // 2
     B_zero_med = hcr_params["B_zero"][m_med]
     ax.axvline(
-        B_zero_med / 1e6, color="black", linestyle="-.", lw=1.4,
+        B_zero_med / 1e6, color="black", linestyle="-.", lw=2.5,
         label=f"$B_{{zero}}$(med P) = {B_zero_med/1e3:.0f} kt",
     )
-    # y position based on actual data range (computed after scatter/plot calls above)
-    H_nonzero = H_star[H_star > 0]
-    y_ref = (H_nonzero.max() / 1e3 * 0.55) if len(H_nonzero) > 0 else 50.0
-    ax.annotate(
-        f"$B_{{zero}}$\n{B_zero_med/1e3:.0f} kt",
-        xy=(B_zero_med / 1e6, y_ref),
-        xytext=(B_zero_med / 1e6 + 0.12, y_ref * 1.25),
-        fontsize=13, color="black",
-        arrowprops=dict(arrowstyle="->", color="black", lw=1.2),
+    # Annotation at top of the line, to the right
+    ax.text(
+        B_zero_med / 1e6 + 0.03, 0.97,
+        f"$B_{{zero}}$ = {B_zero_med/1e3:.0f} kt",
+        transform=ax.get_xaxis_transform(),
+        fontsize=13, color="black", va="top",
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="black", alpha=0.8),
     )
 
     # ── Cosmetics ──────────────────────────────────────────────────────────
