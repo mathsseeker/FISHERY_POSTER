@@ -1,11 +1,14 @@
 """
 profit.py — Precomputed profit tensor π[N, M, J]
 =================================================
-Schooling-fishery profit (Mota 2020, Marine Policy 115):
-    π(I, P, H) = P * H  -  c1 * H^c2
+Schooling-fishery profit — Mota (2020) power-law form:
+    π(P, H) = P · H  −  c1 · H^c2
 
-No density-dependent cost — finding cost is low regardless of stock size
-for schooling species (unlike halibut in Pizarro & Schwartz 2021).
+    c1 : cost scale  (EUR · tonne^(−c2))
+    c2 : curvature exponent  (dimensionless; must be > 1 for concavity)
+
+Price P is in EUR/tonne; H in tonnes/year.
+The biomass I does NOT appear inside the cost term.
 
 Infeasible cells (H > B or H < 0) are set to -inf so VFI never picks them.
 """
@@ -17,6 +20,21 @@ import matplotlib.pyplot as plt
 
 from params import PARAMS
 from price  import build_price_chain
+
+# ── Params integrity check ───────────────────────────────────────────────────
+assert PARAMS["m_s"][0] == 0.20, (
+    f"STALE params.py detected: m_s[0]={PARAMS['m_s'][0]}, expected 0.20. "
+    "Re-run after applying the 2026-04-11 audit corrections."
+)
+assert PARAMS["I_max"] >= 1_000_000, (
+    f"STALE params.py: I_max={PARAMS['I_max']:,}, expected >= 1,000,000 t. "
+    "Re-run after applying the 2026-04-11 audit corrections."
+)
+assert PARAMS["w_s"][0] > 0.1, (
+    f"STALE params.py: w_s[0]={PARAMS['w_s'][0]:.5f}, expected ~0.37 (kg/fish). "
+    "Remove the /1000.0 from the w_s definition in params.py."
+)
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -34,9 +52,11 @@ def build_grids(p: dict = PARAMS,
     B_grid : array[N]  — equally spaced in [0.01*I_max, I_max]
     H_grid : array[J]  — equally spaced in [0, 0.40*I_max]
     """
-    I_max  = p["I_max"]
-    B_grid = np.linspace(0.01 * I_max, I_max, p["N"])
-    H_grid = np.linspace(0.0,          0.40 * I_max, p["J"])
+    I_max   = p["I_max"]
+    B_lo    = p.get("B_grid_lo",  0.01 * I_max)   # hard floor from params; fallback to 1%
+    H_upper = p.get("H_grid_max", 0.40 * I_max)   # hard ceiling from params; fallback to 40%
+    B_grid  = np.linspace(B_lo,   I_max,  p["N"])
+    H_grid  = np.linspace(0.0,    H_upper, p["J"])
     return B_grid, H_grid
 
 
@@ -71,15 +91,18 @@ def build_profit_tensor(
     c1 = p["c1"]
     c2 = p["c2"]
 
-    # Revenue:  P[m] * H[j]  — shape (1, M, J)  via broadcasting
-    # Cost:     c1 * H[j]^c2 — shape (1, 1, J)
-    revenue = P_grid[np.newaxis, :, np.newaxis] * H_grid[np.newaxis, np.newaxis, :]
-    cost    = c1 * (H_grid ** c2)[np.newaxis, np.newaxis, :]
+    # Mota (2020) power-law cost: π(P, H) = P·H − c1·H^c2
+    # Broadcasting shapes:
+    #   P_grid : [M]  →  [1, M, 1]
+    #   H_grid : [J]  →  [1, 1, J]
+    # (B_grid not needed inside cost — kept as argument for feasibility mask only)
+    P = P_grid[np.newaxis, :, np.newaxis]   # [1, M, 1]
+    H = H_grid[np.newaxis, np.newaxis, :]   # [1, 1, J]
 
-    pi = revenue - cost          # shape (1, M, J) broadcast to (N, M, J)
+    pi = (P * H - c1 * H**c2)              # [1, M, J] — broadcast to [N, M, J]
     pi = np.broadcast_to(pi, (len(B_grid), len(P_grid), len(H_grid))).copy()
 
-    # Infeasibility mask: H > B  →  -inf   (broadcast to full N×M×J shape)
+    # Infeasibility mask: H > B  →  -inf
     infeasible = np.broadcast_to(
         H_grid[np.newaxis, np.newaxis, :] > B_grid[:, np.newaxis, np.newaxis],
         pi.shape,

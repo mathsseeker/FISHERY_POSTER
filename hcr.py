@@ -16,6 +16,21 @@ from scipy.optimize import curve_fit
 
 from params import PARAMS
 
+# ── Params integrity check ───────────────────────────────────────────────────
+assert PARAMS["m_s"][0] == 0.20, (
+    f"STALE params.py detected: m_s[0]={PARAMS['m_s'][0]}, expected 0.20. "
+    "Re-run after applying the 2026-04-11 audit corrections."
+)
+assert PARAMS["I_max"] >= 1_000_000, (
+    f"STALE params.py: I_max={PARAMS['I_max']:,}, expected >= 1,000,000 t. "
+    "Re-run after applying the 2026-04-11 audit corrections."
+)
+assert PARAMS["w_s"][0] > 0.1, (
+    f"STALE params.py: w_s[0]={PARAMS['w_s'][0]:.5f}, expected ~0.37 (kg/fish). "
+    "Remove the /1000.0 from the w_s definition in params.py."
+)
+# ─────────────────────────────────────────────────────────────────────────────
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Piecewise model
@@ -56,8 +71,9 @@ def extract_hcr(H_star, B_grid, P_grid, p=PARAMS):
     slope_arr  = np.zeros(M)
     H_max_arr  = np.zeros(M)
 
-    lower = [B_lim,  0.0, 0.0        ]
-    upper = [I_max,  1.0, 0.4 * I_max]
+    H_cap = p.get("H_grid_max", 250_000)   # same ceiling as the harvest grid
+    lower = [B_lim,  0.0, 0.0    ]
+    upper = [I_max,  1.0, H_cap  ]
 
     for m in range(M):
         H_col = H_star[:, m].copy()

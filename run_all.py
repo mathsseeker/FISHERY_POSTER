@@ -21,6 +21,21 @@ from params import PARAMS
 import vfi
 import hcr as hcr_mod
 
+# ── Params integrity check ───────────────────────────────────────────────────
+assert PARAMS["m_s"][0] == 0.20, (
+    f"STALE params.py detected: m_s[0]={PARAMS['m_s'][0]}, expected 0.20. "
+    "Re-run after applying the 2026-04-11 audit corrections."
+)
+assert PARAMS["I_max"] >= 1_000_000, (
+    f"STALE params.py: I_max={PARAMS['I_max']:,}, expected >= 1,000,000 t. "
+    "Re-run after applying the 2026-04-11 audit corrections."
+)
+assert PARAMS["w_s"][0] > 0.1, (
+    f"STALE params.py: w_s[0]={PARAMS['w_s'][0]:.5f}, expected ~0.37 (kg/fish). "
+    "Remove the /1000.0 from the w_s definition in params.py."
+)
+# ─────────────────────────────────────────────────────────────────────────────
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 1 — resolve I0
@@ -31,6 +46,8 @@ def get_I0(p: dict) -> float:
     Return the most recent B4plus_t from iceland_cod_model_data.csv,
     or fall back to p['I0'] if the CSV is absent / unreadable.
     """
+    # Expected: 972_145 t (B4+ 2025 ICES forecast) or PARAMS["I0"] fallback.
+    # Both are equivalent after 2026-04-11 params audit.
     csv_path = "iceland_cod_model_data.csv"
     if os.path.exists(csv_path):
         try:
@@ -68,7 +85,7 @@ def _compute_V_fixed_HR(I0, P0, p) -> float:
     """
     Approximate value if always harvesting at HR_MSY * I0  (perpetuity).
 
-    π_fixed = P0 * H_fixed  -  c1 * H_fixed^c2
+    π_fixed = P0·H_fixed − c1·H_fixed^c2
     V_fixed = π_fixed / (1 - β)           [geometric series, constant π]
 
     This is a conservative lower bound (it ignores stock dynamics and

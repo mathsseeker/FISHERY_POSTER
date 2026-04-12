@@ -12,6 +12,21 @@ import numpy as np
 from scipy.stats import norm
 from params import PARAMS
 
+# ── Params integrity check ───────────────────────────────────────────────────
+assert PARAMS["m_s"][0] == 0.20, (
+    f"STALE params.py detected: m_s[0]={PARAMS['m_s'][0]}, expected 0.20. "
+    "Re-run after applying the 2026-04-11 audit corrections."
+)
+assert PARAMS["I_max"] >= 1_000_000, (
+    f"STALE params.py: I_max={PARAMS['I_max']:,}, expected >= 1,000,000 t. "
+    "Re-run after applying the 2026-04-11 audit corrections."
+)
+assert PARAMS["w_s"][0] > 0.1, (
+    f"STALE params.py: w_s[0]={PARAMS['w_s'][0]:.5f}, expected ~0.37 (kg/fish). "
+    "Remove the /1000.0 from the w_s definition in params.py."
+)
+# ─────────────────────────────────────────────────────────────────────────────
+
 
 def build_price_chain(p: dict = PARAMS) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -32,12 +47,14 @@ def build_price_chain(p: dict = PARAMS) -> tuple[np.ndarray, np.ndarray]:
     nu_P    = p["nu_P"]
     sigma_P = p["sigma_P"]
 
-    # ── Grid: log-linearly spaced over 99th-pctile interval (10-yr horizon) ──
-    # Std dev of log P over 10 years under GBM = sigma_P * sqrt(10)
+    # ── Grid: log-linearly spaced over 99% CI (10-yr horizon) ───────────────
+    # Default: P_low  = P0 * exp(-2.576 * sigma_P * sqrt(10))
+    #          P_high = P0 * exp(+2.576 * sigma_P * sqrt(10))
+    # Override: if P_grid_lo / P_grid_hi are set in p, use those instead.
     log_P0  = np.log(P0)
-    half    = 3.0 * sigma_P * np.sqrt(10)           # ±3σ over 10 years
-    log_lo  = log_P0 - half
-    log_hi  = log_P0 + half
+    half    = 2.576 * sigma_P * np.sqrt(10)         # ±99% CI over 10 years
+    log_lo  = np.log(p.get("P_grid_lo", P0 * np.exp(-half)))
+    log_hi  = np.log(p.get("P_grid_hi", P0 * np.exp( half)))
 
     log_grid = np.linspace(log_lo, log_hi, M)       # equally spaced in log
     P_grid   = np.exp(log_grid)                     # price levels
