@@ -1,8 +1,8 @@
 parameter,value,unit,note
-B_lim,125000.0,t,SSB floor — biological viability constraint
-B_PA,160000.0,t,Precautionary approach SSB threshold
-MSY_Btrigger,265000.0,t,B_MSY trigger — target biomass in HCR
-HR_MSY,0.22,rate,Target harvest rate at MSY
-mgt_Btrigger,220000.0,t,Iceland management plan SSB trigger
-HR_mgt,0.2,rate,Iceland management plan harvest rate
-I_max_estimate,1844139.0,t,1.5 × peak B4+ — carrying capacity proxy
+B_lim,125000.0,t,Bloss — biological viability floor (ICES 2025 Table 4)
+B_PA,160000.0,t,Bpa = Blim × exp(1.645×0.15) (ICES 2016/Table 4)
+MSY_Btrigger,265000.0,t,MSY Btrigger (ICES 2025 Table 4)
+HR_MSY,0.22,rate,HRMSY = proportion of B4+ (ICES 2025 Table 4)
+mgt_Btrigger,220000.0,t,Iceland management plan SSB trigger (ICES Table 4)
+HR_mgt,0.2,rate,Iceland management plan HR (ICES Table 4)
+I_max,2091599.0,t,"True historical peak B4+ (1955, ICES 2025 Table 8)"
