@@ -172,13 +172,13 @@ def plot_hcr(hcr_params, H_star, B_grid, P_grid, p=PARAMS):
         B_zero_med / 1e6, color="black", linestyle="-.", lw=2.5,
         label=f"$B_{{zero}}$(med P) = {B_zero_med/1e3:.0f} kt",
     )
-    # Annotation at top of the line, to the right
+    # Annotation mid-height, to the right of the line
     ax.text(
-        B_zero_med / 1e6 + 0.03, 0.97,
+        B_zero_med / 1e6 + 0.03, 0.50,
         f"$B_{{zero}}$ = {B_zero_med/1e3:.0f} kt",
         transform=ax.get_xaxis_transform(),
-        fontsize=13, color="black", va="top",
-        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="black", alpha=0.8),
+        fontsize=13, color="black", va="center",
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="black", alpha=1.0),
     )
 
     # ── Cosmetics ──────────────────────────────────────────────────────────
@@ -190,7 +190,7 @@ def plot_hcr(hcr_params, H_star, B_grid, P_grid, p=PARAMS):
         fontsize=16,
     )
     ax.tick_params(labelsize=13)
-    ax.legend(fontsize=15, loc="lower right", framealpha=0.85)
+    ax.legend(fontsize=15, loc="upper left", framealpha=1.0, facecolor="white")
     ax.grid(True, alpha=0.25)
     ax.set_xlim(left=0)
     ax.set_ylim(bottom=0)
