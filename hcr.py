@@ -178,7 +178,7 @@ def plot_hcr(hcr_params, H_star, B_grid, P_grid, p=PARAMS):
     ax.annotate(
         f"$B_{{zero}}$\n{B_zero_med/1e3:.0f} kt",
         xy=(B_zero_med / 1e6, y_ref),
-        xytext=(B_zero_med / 1e6 - 0.20, y_ref * 1.15),
+        xytext=(B_zero_med / 1e6 + 0.12, y_ref * 1.25),
         fontsize=13, color="black",
         arrowprops=dict(arrowstyle="->", color="black", lw=1.2),
     )
@@ -192,7 +192,7 @@ def plot_hcr(hcr_params, H_star, B_grid, P_grid, p=PARAMS):
         fontsize=16,
     )
     ax.tick_params(labelsize=13)
-    ax.legend(fontsize=13, loc="upper left", framealpha=0.85)
+    ax.legend(fontsize=15, loc="lower right", framealpha=0.85)
     ax.grid(True, alpha=0.25)
     ax.set_xlim(left=0)
     ax.set_ylim(bottom=0)
