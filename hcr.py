@@ -12,8 +12,6 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-
 from params import PARAMS
 
 # ── Params integrity check ───────────────────────────────────────────────────
@@ -52,33 +50,38 @@ def _hcr_piecewise(B, B_zero, slope, H_max):
 
 def extract_hcr(H_star, B_grid, P_grid, p=PARAMS):
     """
-    Fit the 3-piece HCR to H_star[:,m] for each price index m.
+    Extract 3-piece HCR parameters directly from the VFI policy surface.
 
-    Bounds:
-        B_zero  in [B_lim,  I_max]        (allow VFI threshold anywhere)
-        slope   in [0,      1]
-        H_max   in [0,      0.4*I_max]
+    Reads breakpoints from the data rather than fitting them with a
+    gradient-based optimizer (curve_fit fails on non-differentiable
+    piecewise functions — it pushes H_max to infinity so the ceiling
+    never appears, and misplaces B_zero causing spurious non-zero dots
+    below the closure threshold).
+
+    Method
+    ------
+    1. H_max  — median of H*(B) for B ≥ B_MSY  (actual plateau value)
+    2. B_zero — midpoint before the first B where H* > tol  (closure point)
+    3. slope  — OLS on the ramp region only: B_zero < B < B_ramp
 
     Returns
     -------
     dict with keys: B_zero [M], slope [M], H_max [M]
     """
-    M     = len(P_grid)
-    I_max = p["I_max"]
-    B_lim = p["B_lim"]
+    M      = len(P_grid)
+    I_max  = p["I_max"]
+    B_MSY  = p["MSY_Btrigger"]   # plateau kicks in here (265 kt)
+    tol    = 1.0                  # tonnes — treat H* < tol as zero
 
     B_zero_arr = np.zeros(M)
     slope_arr  = np.zeros(M)
     H_max_arr  = np.zeros(M)
 
-    H_cap = p.get("H_grid_max", 250_000)   # same ceiling as the harvest grid
-    lower = [B_lim,  0.0, 0.0    ]
-    upper = [I_max,  1.0, H_cap  ]
+    plateau_idx = np.where(B_grid >= B_MSY)[0]   # indices in plateau region
 
     for m in range(M):
         H_col = H_star[:, m].copy()
-
-        nz = np.where(H_col > 0)[0]
+        nz    = np.where(H_col > tol)[0]
 
         # Price so low no harvest is ever optimal → trivial rule
         if len(nz) == 0:
@@ -87,29 +90,40 @@ def extract_hcr(H_star, B_grid, P_grid, p=PARAMS):
             H_max_arr[m]  = 0.0
             continue
 
-        # Initial guesses from data
-        i_first     = nz[0]
-        B_zero_g    = (B_grid[max(0, i_first - 1)] + B_grid[i_first]) / 2.0
-        B_zero_g    = float(np.clip(B_zero_g, B_lim + 1, I_max - 1))
-        H_max_g     = float(H_col[nz].max())
-        span        = max(B_grid[-1] - B_zero_g, 1.0)
-        slope_g     = float(np.clip(H_max_g / span, 0.0, 1.0))
+        # ── Step 1: H_max from plateau ─────────────────────────────────────
+        if len(plateau_idx) > 0:
+            H_plateau = H_col[plateau_idx]
+            H_plateau_pos = H_plateau[H_plateau > tol]
+            H_max = float(np.median(H_plateau_pos)) if len(H_plateau_pos) > 0 \
+                    else float(H_col[nz].max())
+        else:
+            H_max = float(H_col[nz].max())
 
-        try:
-            popt, _ = curve_fit(
-                _hcr_piecewise, B_grid, H_col,
-                p0=[B_zero_g, slope_g, H_max_g],
-                bounds=(lower, upper),
-                maxfev=20_000,
-            )
-            B_zero_arr[m] = popt[0]
-            slope_arr[m]  = popt[1]
-            H_max_arr[m]  = popt[2]
-        except RuntimeError:
-            # curve_fit failed — use heuristic estimates
-            B_zero_arr[m] = B_zero_g
-            slope_arr[m]  = slope_g
-            H_max_arr[m]  = H_max_g
+        # ── Step 2: B_zero from first non-zero point ───────────────────────
+        i_first = nz[0]
+        B_zero  = float((B_grid[max(0, i_first - 1)] + B_grid[i_first]) / 2.0)
+
+        # ── Step 3: slope via OLS on ramp region ───────────────────────────
+        # Ramp: B_zero < B, and H* has not yet plateaued (H* < 0.95 * H_max)
+        ramp_mask = (B_grid > B_zero) & (H_col > tol) & (H_col < 0.95 * H_max)
+        ramp_idx  = np.where(ramp_mask)[0]
+
+        if len(ramp_idx) >= 2:
+            X = B_grid[ramp_idx] - B_zero   # distance from closure threshold
+            Y = H_col[ramp_idx]
+            # OLS through origin: slope = (X·Y) / (X·X)
+            slope = float(np.dot(X, Y) / np.dot(X, X))
+            slope = max(0.0, min(1.0, slope))
+        elif H_max > tol:
+            # Fallback: straight line from B_zero to right edge of grid
+            span  = max(B_grid[-1] - B_zero, 1.0)
+            slope = float(np.clip(H_max / span, 0.0, 1.0))
+        else:
+            slope = 0.0
+
+        B_zero_arr[m] = B_zero
+        slope_arr[m]  = slope
+        H_max_arr[m]  = H_max
 
     return {"B_zero": B_zero_arr, "slope": slope_arr, "H_max": H_max_arr}
 
