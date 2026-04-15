@@ -90,32 +90,25 @@ def extract_hcr(H_star, B_grid, P_grid, p=PARAMS):
             H_max_arr[m]  = 0.0
             continue
 
-        # ── Step 1: H_max from plateau ─────────────────────────────────────
-        if len(plateau_idx) > 0:
-            H_plateau = H_col[plateau_idx]
-            H_plateau_pos = H_plateau[H_plateau > tol]
-            H_max = float(np.median(H_plateau_pos)) if len(H_plateau_pos) > 0 \
-                    else float(H_col[nz].max())
-        else:
-            H_max = float(H_col[nz].max())
+        # ── Step 1: H_max — highest H* actually seen in this column ──────────
+        # Use the 95th percentile of non-zero values so occasional grid
+        # artefacts at the top don't inflate the estimate.
+        H_max = float(np.percentile(H_col[nz], 95))
 
         # ── Step 2: B_zero from first non-zero point ───────────────────────
         i_first = nz[0]
         B_zero  = float((B_grid[max(0, i_first - 1)] + B_grid[i_first]) / 2.0)
 
-        # ── Step 3: slope via OLS on ramp region ───────────────────────────
-        # Ramp: B_zero < B, and H* has not yet plateaued (H* < 0.95 * H_max)
-        ramp_mask = (B_grid > B_zero) & (H_col > tol) & (H_col < 0.95 * H_max)
-        ramp_idx  = np.where(ramp_mask)[0]
-
-        if len(ramp_idx) >= 2:
-            X = B_grid[ramp_idx] - B_zero   # distance from closure threshold
-            Y = H_col[ramp_idx]
-            # OLS through origin: slope = (X·Y) / (X·X)
-            slope = float(np.dot(X, Y) / np.dot(X, X))
-            slope = max(0.0, min(1.0, slope))
+        # ── Step 3: slope — rise / run from B_zero to where H* hits H_max ──
+        # Find the first B where H* reaches 90% of H_max (B_ramp).
+        # slope = H_max / (B_ramp - B_zero) guarantees the curve hits the
+        # flat ceiling exactly at B_ramp in the plot.
+        reach_idx = np.where(H_col >= 0.90 * H_max)[0]
+        if len(reach_idx) > 0:
+            B_ramp = float(B_grid[reach_idx[0]])
+            run    = max(B_ramp - B_zero, 1.0)
+            slope  = float(np.clip(H_max / run, 0.0, 1.0))
         elif H_max > tol:
-            # Fallback: straight line from B_zero to right edge of grid
             span  = max(B_grid[-1] - B_zero, 1.0)
             slope = float(np.clip(H_max / span, 0.0, 1.0))
         else:
