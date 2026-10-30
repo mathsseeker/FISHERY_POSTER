@@ -13,6 +13,7 @@ The biomass I does NOT appear inside the cost term.
 Infeasible cells (H > B or H < 0) are set to -inf so VFI never picks them.
 """
 
+import os
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -169,6 +170,7 @@ if __name__ == "__main__":
     ax.set_ylabel("Biomass B (million tonnes)")
     ax.set_title(f"Profit surface π(B, P_med, H)  [P_med = {P_grid[m_mid]:,.0f} ISK/t]")
     plt.tight_layout()
-    plt.savefig("profit_check.png", dpi=120)
-    print("\n  Heatmap saved → profit_check.png ✓")
+    os.makedirs("figures", exist_ok=True)
+    plt.savefig("figures/profit_check.png", dpi=120)
+    print("\n  Heatmap saved → figures/profit_check.png ✓")
     print("\nAll profit tests passed. ✓")

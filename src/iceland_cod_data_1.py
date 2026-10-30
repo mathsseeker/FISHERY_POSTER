@@ -14,6 +14,7 @@ Run:
     python iceland_cod_data_1.py
 """
 
+import os
 import json
 import requests
 import pandas as pd
@@ -356,7 +357,8 @@ def main():
         "delta_log_B", "R_over_SSB", "stock_productivity", "catch_source",
     ]
     df_out = df[KEEP].sort_values("year").reset_index(drop=True)
-    df_out.to_csv("iceland_cod_model_data.csv", index=False)
+    os.makedirs("data", exist_ok=True)
+    df_out.to_csv("data/iceland_cod_model_data.csv", index=False)
 
     # Reference points
     REF = pd.DataFrame([
@@ -368,7 +370,7 @@ def main():
         ("HR_mgt",           0.20,  "rate", "Iceland management plan HR (ICES Table 4)"),
         ("I_max",     int(I_max),   "t",    "True historical peak B4+ (1955, ICES 2025 Table 8)"),
     ], columns=["parameter", "value", "unit", "note"])
-    REF.to_csv("iceland_cod_reference_points.csv", index=False)
+    REF.to_csv("data/iceland_cod_reference_points.csv", index=False)
 
     # ── Step 7: Print summary ─────────────────────────────────────────────────
     recent = df_out[df_out["year"] >= 2010]

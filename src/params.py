@@ -20,7 +20,7 @@ import numpy as np
 from pathlib import Path
 
 # ── Try to update I0 / validation catch from the generated CSV ───────────────
-_CSV = Path(__file__).parent / "iceland_cod_model_data.csv"
+_CSV = Path(__file__).parent.parent / "data" / "iceland_cod_model_data.csv"
 _I0_default       = 1_068_566   # B4+ biomass 2024 (tonnes)  — ICES 2025
 _CATCH_ICES_2025  = 203_822     # ICES advised catch 2025 (tonnes)
 

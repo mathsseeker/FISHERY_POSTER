@@ -10,12 +10,14 @@ Pipeline:
 """
 
 import os
+import sys
 import numpy as np
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
 
-# ── ensure we run from the project directory ───────────────────────────────
+# ── ensure we run from the project directory, with src/ on the import path ──
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, "src")
 
 from params import PARAMS
 import vfi
@@ -48,7 +50,7 @@ def get_I0(p: dict) -> float:
     """
     # Expected: 972_145 t (B4+ 2025 ICES forecast) or PARAMS["I0"] fallback.
     # Both are equivalent after 2026-04-11 params audit.
-    csv_path = "iceland_cod_model_data.csv"
+    csv_path = "data/iceland_cod_model_data.csv"
     if os.path.exists(csv_path):
         try:
             df   = pd.read_csv(csv_path)

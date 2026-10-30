@@ -8,6 +8,7 @@ Fits a 3-piece HCR to each price column of the VFI policy surface:
     H = H_max                       if B >= B_zero + H_max/slope
 """
 
+import os
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -197,9 +198,10 @@ def plot_hcr(hcr_params, H_star, B_grid, P_grid, p=PARAMS):
     ax.set_ylim(bottom=0)
 
     plt.tight_layout()
-    plt.savefig("hcr_plot.png", dpi=150)
+    os.makedirs("figures", exist_ok=True)
+    plt.savefig("figures/hcr_plot.png", dpi=150)
     plt.close()
-    print("  Saved: hcr_plot.png")
+    print("  Saved: figures/hcr_plot.png")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -235,16 +237,15 @@ def print_hcr_table(hcr_params, P_grid):
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    import os
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     print("=" * 60)
     print("hcr.py — Harvest Control Rule extraction")
     print("=" * 60)
 
-    B_grid = np.load("B_grid.npy")
-    P_grid = np.load("P_grid.npy")
-    H_star = np.load("H_star.npy")
+    B_grid = np.load("results/B_grid.npy")
+    P_grid = np.load("results/P_grid.npy")
+    H_star = np.load("results/H_star.npy")
 
     print(f"  Loaded H_star {H_star.shape},  "
           f"B_grid [{B_grid.min():,.0f}, {B_grid.max():,.0f}] t,  "

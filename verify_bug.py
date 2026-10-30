@@ -7,8 +7,10 @@ dot(w_s, x) give biomass in (tonnes * thousands) instead of tonnes.
 """
 
 import os
+import sys
 import numpy as np
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, "src")
 
 from params import PARAMS
 from population import steady_state_x, transition

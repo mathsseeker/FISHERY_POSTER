@@ -6,8 +6,10 @@ Simulation B: HR=0.21 harvest, zero shock, 10 years â†’ H year-1 should be 150kâ
 """
 
 import os
+import sys
 import numpy as np
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, "src")
 
 from params import PARAMS
 from population import steady_state_x, transition, ssb

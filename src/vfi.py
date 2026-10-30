@@ -13,6 +13,7 @@ VFI iterates until max|V_new - V_old| < 1e-6  (max 2000 iterations).
 Results are saved to .npy files so hcr.py can reload without re-running VFI.
 """
 
+import os
 import time
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
@@ -204,11 +205,12 @@ def solve_vfi(p: dict = PARAMS):
     H_star = H_grid[j_star]   # [N, M]
 
     # ── Save results ──────────────────────────────────────────────────────────
-    np.save("V_star.npy",  V)
-    np.save("H_star.npy",  H_star)
-    np.save("B_grid.npy",  B_grid)
-    np.save("P_grid.npy",  P_grid)
-    print("  Saved: V_star.npy, H_star.npy, B_grid.npy, P_grid.npy", flush=True)
+    os.makedirs("results", exist_ok=True)
+    np.save("results/V_star.npy",  V)
+    np.save("results/H_star.npy",  H_star)
+    np.save("results/B_grid.npy",  B_grid)
+    np.save("results/P_grid.npy",  P_grid)
+    print("  Saved: results/{V_star,H_star,B_grid,P_grid}.npy", flush=True)
 
     return V, H_star, B_grid, P_grid
 
