@@ -4,6 +4,10 @@ Stochastic bioeconomic optimisation of the Icelandic cod fishery.
 Solves for an optimal Harvest Control Rule by Value Function Iteration
 on the 2D state `(biomass, price)`, calibrated to ICES 2025.
 
+**Main finding: our price-aware policy generates ≈ 48 % more long-term
+fishery value than Iceland's current ICES fixed rule, while
+satisfying every ecological constraint.**
+
 Poster project for Optimization II (IE, Year 2, Q2) — Katrín
 Árnadóttir and Ricardo Pérez.
 
